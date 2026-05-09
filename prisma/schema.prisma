@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String            @id @default(uuid())
+  name             String
+  email            String            @unique
+  role             String            @default("USER") // USER, CAREGIVER, ADMIN
+  passwordHash     String
+  createdAt        DateTime          @default(now())
+  patientProfile   PatientProfile?
+  caregiverProfile CaregiverProfile?
+}
+
+model PatientProfile {
+  id           String @id @default(uuid())
+  userId       String @unique
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  age          Int
+  medicalNeeds String
+  address      String
+}
+
+model CaregiverProfile {
+  id                 String  @id @default(uuid())
+  userId             String  @unique
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  qualifications     String
+  experienceYears    Int
+  verificationStatus String  @default("PENDING") // PENDING, VERIFIED, REJECTED
+  hourlyRate         Float
+  services           Service @relation(fields: [serviceId], references: [id])
+  serviceId          String
+}
+
+model Service {
+  id               String             @id @default(uuid())
+  name             String             @unique
+  description      String
+  category         String
+  basePrice        Float
+  icon             String             @default("🩺")
+  CaregiverProfile CaregiverProfile[]
+}
